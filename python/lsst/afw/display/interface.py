@@ -90,7 +90,12 @@ def _makeDisplayImpl(display, backend, *args, **kwargs):
             impargs["package"] = "lsst.display"
         try:
             _disp = importlib.import_module(dt, **impargs)
-            break
+            # If _disp doesn't have a DisplayImpl attribute, we probably
+            # picked up an irrelevant module due to a name collision
+            if hasattr(_disp, "DisplayImpl"):
+                break
+            else:
+                _disp = None
         except (ImportError, SystemError) as e:
             # SystemError can be raised in Python 3.5 if a relative import
             # is attempted when the root package, lsst.display, does not exist.
@@ -98,12 +103,12 @@ def _makeDisplayImpl(display, backend, *args, **kwargs):
             exc = e
 
     if not _disp or not hasattr(_disp.DisplayImpl, "_show"):
+        # If available, re-use the final exception from above
+        e = ImportError(f"Could not load the requested backend: {backend}")
         if exc is not None:
-            # re-raise the final exception
-            raise exc
+            raise e from exc
         else:
-            raise ImportError(
-                "Could not load the requested backend: {}".format(backend))
+            raise e
 
     if display:
         _impl = _disp.DisplayImpl(display, *args, **kwargs)
