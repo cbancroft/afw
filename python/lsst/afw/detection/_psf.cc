@@ -32,6 +32,7 @@
 #include "lsst/afw/table/io/python.h"  // for addPersistableMethods
 #include "lsst/afw/typehandling/Storable.h"
 #include "lsst/afw/detection/Psf.h"
+#include "lsst/afw/detection/python.h"
 
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -51,10 +52,12 @@ void wrapPsf(utils::python::WrapperCollection& wrappers) {
     wrappers.addSignatureDependency("lsst.afw.fits");
 
     auto clsPsf = wrappers.wrapType(
-            py::class_<Psf, std::shared_ptr<Psf>, typehandling::Storable>(wrappers.module, "Psf"),
+            py::class_<Psf, std::shared_ptr<Psf>, typehandling::Storable, PyPsf<>>(wrappers.module, "Psf"),
             [](auto& mod, auto& cls) {
                 table::io::python::addPersistableMethods<Psf>(cls);
-
+                // Can't figure out how to add a constructor that python derived-class can use
+                // cls.def(py::init_alias<bool,size_t>());
+                // cls.def(py::init<bool,size_t>());
                 cls.def("clone", &Psf::clone);
                 cls.def("resized", &Psf::resized, "width"_a, "height"_a);
                 cls.def("computeImage", &Psf::computeImage, "position"_a = NullPoint,

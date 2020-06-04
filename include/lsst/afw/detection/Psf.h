@@ -113,7 +113,7 @@ public:
      * This method is an alias of @ref clone that can be called from a
      * reference to @ref typehandling::Storable "Storable".
      */
-    std::shared_ptr<typehandling::Storable> cloneStorable() const override final { return clone(); }
+    std::shared_ptr<typehandling::Storable> cloneStorable() const override { return clone(); }
 
     /**
      *  Return clone with specified kernel dimensions
